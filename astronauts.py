@@ -96,8 +96,8 @@ def plot_cumulative(df):
             dtick=5,
             tickangle=-45
         ),
-        width=600,
-        height=400
+        
+        height=600
     )
     return fig
 
@@ -144,8 +144,8 @@ def plot_top_nats(df):
     # CHANGED: update legend position below chart, centered
     fig.update_layout(
         xaxis_tickangle=-45,
-        width=600,
-        height=400,
+        
+        height=600,
         showlegend=False
         
     )  # CHANGED
@@ -169,7 +169,7 @@ def plot_gender_pie(df):
         color_discrete_sequence=COLOR_SEQ
     )
     fig.update_traces(textposition='inside', textinfo='percent+label')
-    fig.update_layout(width=600, height=400,
+    fig.update_layout(height=600,
                       showlegend=False)
     return fig
 
@@ -195,8 +195,8 @@ def plot_choropleth(df):
         plot_bgcolor='rgba(0,0,0,0)',
         geo=dict(showframe=False, showcoastlines=True),
         margin=dict(l=0, r=0, t=50, b=0),
-        width=600,
-        height=400
+        
+        height=600
     )
     
     return fig_choro
