@@ -204,7 +204,7 @@ def plot_choropleth(df):
 # --------------- Layout ---------------
 st.title("🚀 Astronaut Dashboard")
 st.header("👨‍🚀🌌There have been 565 people is space so far!")
-st.subtitle("As of 2020")
+st.markdown("As of 2020")
 st.plotly_chart(plot_cumulative(df_filt), use_container_width=True)
 st.header("🇺🇸🏆 The United States have the lead!")
 st.plotly_chart(plot_top_nats(df_filt), use_container_width=True)
