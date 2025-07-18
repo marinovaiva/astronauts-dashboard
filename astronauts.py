@@ -204,6 +204,26 @@ def plot_choropleth(df):
     
     return fig_choro
 
+# 5) Pie chart of EVA activity (duration > 0)
+def plot_eva_pie(df):
+    unique_ = df.drop_duplicates(subset='profile_name')
+    ec = (
+        unique_["profile_eva_activity"]
+               .value_counts()
+               .reset_index(name='count')
+               .rename(columns={'index':'eva_activity'})
+    )
+    fig = px.pie(
+        ec, names='eva_activity', values='count', hole=0.3,
+        title="EVA Activity (Any EVA vs. None)",
+        color_discrete_sequence=COLOR_SEQ,
+        height=600,
+        template=None
+    )
+    fig.update_traces(textposition='inside', textinfo='percent+label')
+    return fig
+
+
 # --------------- Layout ---------------
 st.title("🚀 Astronaut Dashboard")
 st.header("👨‍🚀🌌There have been 565 people is space so far!")
@@ -215,6 +235,8 @@ st.header("🗺️🚀 So far, 39 nationalities have been to space!")
 st.plotly_chart(plot_choropleth(df_filt), use_container_width=True)
 st.header("🤔👨‍🚀They keep sending men to space?")
 st.plotly_chart(plot_gender_pie(df_filt), use_container_width=True)
+st.header("Extravehicular Activity Overview")
+st.plotly_chart(plot_eva_pie(df_filt), use_container_width=True)
     
     
 
