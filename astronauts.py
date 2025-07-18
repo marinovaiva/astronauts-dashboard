@@ -203,15 +203,11 @@ def plot_choropleth(df):
 
 # --------------- Layout ---------------
 st.title("🚀 Astronaut Dashboard")
-col1, col2 = st.columns(2)
+st.plotly_chart(plot_cumulative(df_filt), use_container_width=True)
+st.plotly_chart(plot_top_nats(df_filt), use_container_width=True)
 
-with col1:
-    st.plotly_chart(plot_cumulative(df_filt), use_container_width=True)
-    st.plotly_chart(plot_top_nats(df_filt), use_container_width=True)
-
-with col2:
-    st.plotly_chart(plot_choropleth(df_filt), use_container_width=True)
-    st.plotly_chart(plot_gender_pie(df_filt), use_container_width=True)
+st.plotly_chart(plot_choropleth(df_filt), use_container_width=True)
+st.plotly_chart(plot_gender_pie(df_filt), use_container_width=True)
     
     
 
