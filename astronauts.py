@@ -8,7 +8,7 @@ import plotly.express as px
 st.set_page_config(page_title="Astronaut Dashboard", layout="wide")
 
 # --------------- Data Loading & Preprocessing ---------------
-@st.cache(allow_output_mutation=True)
+@st.cache_data
 def load_data(path: str) -> pd.DataFrame:
     df = pd.read_csv(path, parse_dates=['Mission.Year'])
     df['year'] = df['Mission.Year'].dt.year
@@ -68,7 +68,7 @@ df_filt = astro[
 
 # --------------- Plot Functions ---------------
 
-def plot_cumulative(df: pd.DataFrame) -> px.Figure:
+def plot_cumulative(df):
     yearly = (
         df
         .groupby('year', as_index=False)
@@ -95,7 +95,7 @@ def plot_cumulative(df: pd.DataFrame) -> px.Figure:
     return fig
 
 
-def plot_top_nats(df: pd.DataFrame) -> px.Figure:
+def plot_top_nats(df):
     top10 = df['profile_nationality'].value_counts().nlargest(10).index
     grp = (
         df[df['profile_nationality'].isin(top10)]
@@ -116,7 +116,7 @@ def plot_top_nats(df: pd.DataFrame) -> px.Figure:
     return fig
 
 
-def plot_gender_pie(df: pd.DataFrame) -> px.Figure:
+def plot_gender_pie(df):
     unique_ = df.drop_duplicates(subset='profile_name')
     gc = (
         unique_['profile_gender']
@@ -138,7 +138,7 @@ def plot_gender_pie(df: pd.DataFrame) -> px.Figure:
     return fig
 
 
-def plot_choropleth(df: pd.DataFrame) -> px.Figure:
+def plot_choropleth(df):
     country_counts = (
         df
         .groupby('profile_nationality', as_index=False)
