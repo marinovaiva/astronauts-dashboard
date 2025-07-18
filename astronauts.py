@@ -181,4 +181,4 @@ with col1:
 with col2:
     st.plotly_chart(plot_top_nats(df_filt), use_container_width=True)
     st.plotly_chart(plot_choropleth(df_filt), use_container_width=True)
-```
+
