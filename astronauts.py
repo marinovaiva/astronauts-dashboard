@@ -235,8 +235,8 @@ st.header("🗺️🚀 So far, 39 nationalities have been to space!")
 st.plotly_chart(plot_choropleth(df_filt), use_container_width=True)
 st.header("🤔👨‍🚀They keep sending men to space?")
 st.plotly_chart(plot_gender_pie(df_filt), use_container_width=True)
-st.header("Extravehicular Activity Overview")
-st.plotly_chart(plot_eva_pie(df_filt), use_container_width=True)
+#st.header("Extravehicular Activity Overview")
+#st.plotly_chart(plot_eva_pie(df_filt), use_container_width=True)
     
     
 
