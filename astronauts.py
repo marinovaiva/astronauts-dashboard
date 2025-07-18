@@ -104,55 +104,39 @@ def plot_cumulative(df):
 )
     return fig
 
-
+# 2) Top 10 nationalities by gender, sorted by total count
+# CHANGED: Determine top 10 nationalities by overall count instead of alphabetical
+# CHANGED: Explicitly enforce category ordering for plotly to sort bars by count
 def plot_top_nats(df):
-    """
-    Plot top 10 nationalities by gender as a grouped bar chart with Plasma colors, sorted by total count.
-    """
-    # ADDED: compute top 10 nationalities by total count for sorting
-    top10_series = df['profile_nationality'].value_counts().nlargest(10)  # ADDED
-    top10_list = top10_series.index.tolist()  # ADDED
+    # Compute top 10 nationalities by descending count
+    top10_series = df["profile_nationality"].value_counts().nlargest(10)  # CHANGED: use value_counts().nlargest
+    top10_list = top10_series.index.tolist()  # CHANGED: preserve this order for categories
 
-    # Filter and group by nationality and gender
+    # Group filtered data by nationality and gender
     grp = (
-        df[df['profile_nationality'].isin(top10_list)]  # CHANGED: use top10_list, not alphabetical
-          .groupby(['profile_nationality', 'profile_gender'], as_index=False)
+        df[df["profile_nationality"].isin(top10_list)]
+          .groupby(["profile_nationality","profile_gender"], as_index=False)
           .size()
-          .rename(columns={'size': 'count'})
+          .rename(columns={"size":"count"})
     )
 
-    # CHANGED: enforce categorical ordering to sort countries by total count
-    grp['profile_nationality'] = pd.Categorical(
-        grp['profile_nationality'],
-        categories=top10_list,
-        ordered=True
-    )  # ADDED
-
-    # CHANGED: invert female/male colors by reversing the Plasma palette
-
-    # Create bar chart with reversed colors
+    # Create bar chart with enforced category order for x-axis
     fig = px.bar(
         grp,
-        x='profile_nationality',
-        y='count',
-        color='profile_gender',
+        x="profile_nationality",
+        y="count",
+        color="profile_gender",
         barmode='group',
+        category_orders={"profile_nationality": top10_list},  # CHANGED: enforce sort by count order
         title="Top 10 Nationalities by Gender",
-        labels={'profile_nationality': 'Country', 'count': '# Astronauts'},
-        color_discrete_sequence=COLOR_SEQ,  # CHANGED: use inverted colors
-        template='plotly_white'
+        labels={"profile_nationality":"Country","count":"# Astronauts"},
+        color_discrete_sequence=COLOR_SEQ,
+        height=600,
+        template=None
     )
-
-    # CHANGED: update legend title
-    # CHANGED: update legend position below chart, centered
-    fig.update_layout(
-        xaxis_tickangle=-45,
-        
-        height=800,
-        showlegend=False
-        
-    )  # CHANGED
+    fig.update_layout(xaxis_tickangle=-45)
     return fig
+
 
 
 def plot_gender_pie(df):
