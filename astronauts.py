@@ -100,7 +100,7 @@ def plot_cumulative(df):
         height=800
     )
     fig.update_layout(
-  font=dict(size=14),         # global font for that figure
+  font=dict(size=20),         # global font for that figure
   xaxis_title_font_size=18,   # axis title only
   xaxis_tickfont_size=12,     # axis ticks only
   legend_font_size=14
