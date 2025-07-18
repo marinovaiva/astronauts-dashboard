@@ -35,7 +35,7 @@ astro['mission_role'] = (
 )
 astro['profile_eva_activity'] = (
     astro['profile_lifetime_statistics_eva_duration'] != 0
-).map({False: 'no', True: 'yes'})
+)
 
 # --------------- Sidebar Filters ---------------
 st.sidebar.header("🔎 Filters")
