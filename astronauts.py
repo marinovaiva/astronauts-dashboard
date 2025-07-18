@@ -4,6 +4,15 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.io as pio
+
+# --- Theme: global font sizes via Plotly template ---
+custom = pio.templates["plotly_white"].layout.to_plotly_json()
+custom["font"] = dict(family="Arial, sans-serif", size=16)
+custom["xaxis"] = dict(title_font=dict(size=18), tickfont=dict(size=14))
+custom["yaxis"] = dict(title_font=dict(size=18), tickfont=dict(size=14))
+pio.templates["MY_DASHBOARD"] = custom
+pio.templates.default = "MY_DASHBOARD"
 
 # configure page layout
 st.set_page_config(layout="wide")
