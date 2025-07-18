@@ -8,7 +8,7 @@ import plotly.express as px
 st.set_page_config(page_title="Astronaut Dashboard", layout="wide")
 
 # --------------- Data Loading & Preprocessing ---------------
-@st.cache_data
+@st.cache(allow_output_mutation=True)
 def load_data(path: str) -> pd.DataFrame:
     df = pd.read_csv(path, parse_dates=['Mission.Year'])
     df['year'] = df['Mission.Year'].dt.year
@@ -124,7 +124,6 @@ def plot_gender_pie(df: pd.DataFrame) -> px.Figure:
         .reset_index(name='count')
         .rename(columns={'index': 'gender'})
     )
-    # Return an empty figure if no data
     if gc.empty:
         return px.Figure()
     fig = px.pie(
