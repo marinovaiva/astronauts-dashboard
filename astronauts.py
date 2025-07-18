@@ -65,7 +65,7 @@ df_filt = astro[
 ]
 
 # --------------- Plot Functions ---------------
-COLOR_SEQ = px.colors.sequential.Plasma
+COLOR_SEQ = px.colors.sequential.Magma
 #COLOR_SEQ = COLOR_SEQ1[::-1]
 
 # Plot 1: Cumulative overall astronauts over time
