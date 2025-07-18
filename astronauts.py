@@ -134,7 +134,8 @@ def plot_top_nats(df):
         height=600,
         template=None
     )
-    fig.update_layout(xaxis_tickangle=-45)
+    fig.update_layout(xaxis_tickangle=-45,
+                     showlegend=False)
     return fig
 
 
