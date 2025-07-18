@@ -3,6 +3,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 
 # Configure the Streamlit page
 st.set_page_config(page_title="Astronaut Dashboard", layout="wide")
@@ -67,14 +68,13 @@ df_filt = astro[
 ]
 
 # --------------- Plot Functions ---------------
-
 def plot_cumulative(df):
     yearly = (
         df
         .groupby('year', as_index=False)
         .agg(cum_overall=('profile_astronaut_numbers_overall', 'max'))
     )
-    fig = px.line(
+    fig_cumulative = px.line(
         yearly,
         x='year',
         y='cum_overall',
@@ -82,7 +82,7 @@ def plot_cumulative(df):
         title="Cumulative Astronauts (Overall)",
         labels={'cum_overall': 'Total # Astronauts'}
     )
-    fig.update_layout(
+    fig_cumulative.update_layout(
         xaxis=dict(
             range=[years[0], years[-1]],
             tickmode='linear',
@@ -92,7 +92,7 @@ def plot_cumulative(df):
         width=600,
         height=400
     )
-    return fig
+    return fig_cumulative
 
 
 def plot_top_nats(df):
@@ -103,7 +103,7 @@ def plot_top_nats(df):
         .size()
         .rename(columns={'size': 'count'})
     )
-    fig = px.bar(
+    fig_top_nats = px.bar(
         grp,
         x='profile_nationality',
         y='count',
@@ -112,8 +112,8 @@ def plot_top_nats(df):
         title="Top 10 Nationalities by Gender",
         labels={'profile_nationality': 'Country', 'count': '# Astronauts'}
     )
-    fig.update_layout(xaxis_tickangle=-45, width=600, height=400)
-    return fig
+    fig_top_nats.update_layout(xaxis_tickangle=-45, width=600, height=400)
+    return fig_top_nats
 
 
 def plot_gender_pie(df):
@@ -124,18 +124,18 @@ def plot_gender_pie(df):
         .reset_index(name='count')
         .rename(columns={'index': 'gender'})
     )
-    if gc.empty:
-        return px.Figure()
-    fig = px.pie(
-        data_frame=gc,
-        names='gender',
-        values='count',
-        hole=0.3,
-        title="Unique Astronauts by Gender"
-    )
-    fig.update_traces(textposition='inside', textinfo='percent+label')
-    fig.update_layout(width=600, height=400)
-    return fig
+    fig_gender_pie = go.Figure()
+    if not gc.empty and gc['count'].sum() > 0:
+        fig_gender_pie = px.pie(
+            data_frame=gc.astype({'gender': str, 'count': int}),
+            names='gender',
+            values='count',
+            hole=0.3,
+            title="Unique Astronauts by Gender"
+        )
+        fig_gender_pie.update_traces(textposition='inside', textinfo='percent+label')
+        fig_gender_pie.update_layout(width=600, height=400)
+    return fig_gender_pie
 
 
 def plot_choropleth(df):
@@ -144,7 +144,7 @@ def plot_choropleth(df):
         .groupby('profile_nationality', as_index=False)
         .agg(count=('profile_astronaut_numbers_nationwide', 'max'))
     )
-    fig = px.choropleth(
+    fig_choropleth = px.choropleth(
         country_counts,
         locations='profile_nationality',
         locationmode='country names',
@@ -152,23 +152,28 @@ def plot_choropleth(df):
         hover_name='profile_nationality',
         title='Unique Astronauts per Country'
     )
-    fig.update_layout(
+    fig_choropleth.update_layout(
         geo=dict(showframe=False, showcoastlines=True),
         margin=dict(l=0, r=0, t=50, b=0),
         width=600,
         height=400
     )
-    return fig
+    return fig_choropleth
 
 # --------------- Main Layout ---------------
 st.title("🚀 Astronaut Dashboard")
 col1, col2 = st.columns(2)
 
 with col1:
-    st.plotly_chart(plot_cumulative(df_filt), use_container_width=True)
-    pie_fig = plot_gender_pie(df_filt)
-    st.plotly_chart(pie_fig, use_container_width=True)
+    cumulative_fig = plot_cumulative(df_filt)
+    st.plotly_chart(cumulative_fig, use_container_width=True)
+
+    gender_pie_fig = plot_gender_pie(df_filt)
+    st.plotly_chart(gender_pie_fig, use_container_width=True)
 
 with col2:
-    st.plotly_chart(plot_top_nats(df_filt), use_container_width=True)
-    st.plotly_chart(plot_choropleth(df_filt), use_container_width=True)
+    top_nats_fig = plot_top_nats(df_filt)
+    st.plotly_chart(top_nats_fig, use_container_width=True)
+
+    choropleth_fig = plot_choropleth(df_filt)
+    st.plotly_chart(choropleth_fig, use_container_width=True)
