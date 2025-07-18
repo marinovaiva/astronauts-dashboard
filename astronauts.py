@@ -4,33 +4,33 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# configure page layout
-st.set_page_config(layout="wide")
+# Configure the Streamlit page
+st.set_page_config(page_title="Astronaut Dashboard", layout="wide")
 
 # --------------- Data Loading & Preprocessing ---------------
 @st.cache_data
-def load_data(path):
+def load_data(path: str) -> pd.DataFrame:
     df = pd.read_csv(path, parse_dates=['Mission.Year'])
     df['year'] = df['Mission.Year'].dt.year
     return df
 
-# load once
+# Load data (ensure 'astronauts.csv' is in the repo root)
 astro = load_data('astronauts.csv')
 
-# normalize column names & clean up mission_role, EVA flag
+# Normalize column names & clean up fields
 astro.columns = (
     astro.columns
-         .str.lower()
-         .str.replace('.', '_', regex=False)
-         .str.replace(' ', '_', regex=False)
+        .str.lower()
+        .str.replace('.', '_', regex=False)
+        .str.replace(' ', '_', regex=False)
 )
 astro['mission_role'] = (
     astro['mission_role']
-         .str.lower()
-         .str.replace('other (journalist)', 'journalist', regex=False)
-         .str.replace('other (space tourist)', 'space tourist', regex=False)
-         .str.replace('psp', 'payload specialist', regex=False)
-         .str.replace('msp', 'mission specialist', regex=False)
+        .str.lower()
+        .str.replace('other (journalist)', 'journalist', regex=False)
+        .str.replace('other (space tourist)', 'space tourist', regex=False)
+        .str.replace('psp', 'payload specialist', regex=False)
+        .str.replace('msp', 'mission specialist', regex=False)
 )
 astro['profile_eva_activity'] = (
     astro['profile_lifetime_statistics_eva_duration'] != 0
@@ -41,21 +41,24 @@ st.sidebar.header("🔎 Filters")
 
 years = sorted(astro['year'].unique())
 selected_years = st.sidebar.slider(
-    "Year range", min_value=years[0], max_value=years[-1],
-    value=(years[0], years[-1])
+    "Year range",
+    min_value=years[0],
+    max_value=years[-1],
+    value=(years[0], years[-1]),
+    step=1
 )
 
-genders = astro['profile_gender'].unique().tolist()
+genders = astro['profile_gender'].dropna().unique().tolist()
 selected_genders = st.sidebar.multiselect(
     "Gender", options=genders, default=genders
 )
 
-nats = astro['profile_nationality'].unique().tolist()
+nats = astro['profile_nationality'].dropna().unique().tolist()
 selected_nats = st.sidebar.multiselect(
     "Nationality", options=nats, default=nats
 )
 
-# apply filters
+# Apply filters
 df_filt = astro[
     (astro['year'] >= selected_years[0]) &
     (astro['year'] <= selected_years[1]) &
@@ -65,16 +68,11 @@ df_filt = astro[
 
 # --------------- Plot Functions ---------------
 
-# Plot 1: Cumulative overall astronauts over time
-def plot_cumulative(df):
-    sorted_ = df.sort_values(
-        ['mission_year','profile_astronaut_numbers_overall']
-    )
+def plot_cumulative(df: pd.DataFrame) -> px.Figure:
     yearly = (
-        sorted_
-          .groupby('year', as_index=False)
-          .agg({'profile_astronaut_numbers_overall':'max'})
-          .rename(columns={'profile_astronaut_numbers_overall':'cum_overall'})
+        df
+        .groupby('year', as_index=False)
+        .agg(cum_overall=('profile_astronaut_numbers_overall', 'max'))
     )
     fig = px.line(
         yearly,
@@ -82,13 +80,12 @@ def plot_cumulative(df):
         y='cum_overall',
         markers=True,
         title="Cumulative Astronauts (Overall)",
-        labels={'cum_overall':'Total # Astronauts'}
+        labels={'cum_overall': 'Total # Astronauts'}
     )
     fig.update_layout(
         xaxis=dict(
-            range=[min(years),max(years)],
+            range=[years[0], years[-1]],
             tickmode='linear',
-            tick0=1965,
             dtick=5,
             tickangle=-45
         ),
@@ -97,20 +94,14 @@ def plot_cumulative(df):
     )
     return fig
 
-# Plot 2: Top 10 nationalities by count (split by gender)
-def plot_top_nats(df):
-    top10 = (
-        df['profile_nationality']
-          .value_counts()
-          .nlargest(10)
-          .index.tolist()
-    )
-    sub = df[df['profile_nationality'].isin(top10)]
+
+def plot_top_nats(df: pd.DataFrame) -> px.Figure:
+    top10 = df['profile_nationality'].value_counts().nlargest(10).index
     grp = (
-        sub
-          .groupby(['profile_nationality','profile_gender'])
-          .size()
-          .reset_index(name='count')
+        df[df['profile_nationality'].isin(top10)]
+        .groupby(['profile_nationality', 'profile_gender'], as_index=False)
+        .size()
+        .rename(columns={'size': 'count'})
     )
     fig = px.bar(
         grp,
@@ -118,26 +109,24 @@ def plot_top_nats(df):
         y='count',
         color='profile_gender',
         barmode='group',
-        title="Top 10 Nationalities by Gender",
-        labels={'profile_nationality':'Country','count':'# Astronauts'}
+        title="Top 10 Nationalities by Gender",
+        labels={'profile_nationality': 'Country', 'count': '# Astronauts'}
     )
     fig.update_layout(xaxis_tickangle=-45, width=600, height=400)
     return fig
 
-# Plot 3: Pie chart of unique astronauts by gender
-def plot_gender_pie(df):
+
+def plot_gender_pie(df: pd.DataFrame) -> px.Figure:
     unique_ = df.drop_duplicates(subset='profile_name')
     gc = (
         unique_['profile_gender']
-               .value_counts(dropna=False)
-               .reset_index(name='count')
-               .rename(columns={'index':'gender'})
+        .value_counts(dropna=False)
+        .reset_index(name='count')
+        .rename(columns={'index': 'gender'})
     )
-    # Debug: inspect data
-    st.write("👀 pie data:", gc)
+    # Return an empty figure if no data
     if gc.empty:
-        st.warning("No gender data to display.")
-        return None
+        return px.Figure()
     fig = px.pie(
         data_frame=gc,
         names='gender',
@@ -149,13 +138,12 @@ def plot_gender_pie(df):
     fig.update_layout(width=600, height=400)
     return fig
 
-# Plot 4: Choropleth map of unique astronauts per country
-def plot_choropleth(df):
+
+def plot_choropleth(df: pd.DataFrame) -> px.Figure:
     country_counts = (
         df
-          .groupby('profile_nationality')['profile_astronaut_numbers_nationwide']
-          .max()
-          .reset_index(name='count')
+        .groupby('profile_nationality', as_index=False)
+        .agg(count=('profile_astronaut_numbers_nationwide', 'max'))
     )
     fig = px.choropleth(
         country_counts,
@@ -163,7 +151,6 @@ def plot_choropleth(df):
         locationmode='country names',
         color='count',
         hover_name='profile_nationality',
-        color_continuous_scale='Viridis',
         title='Unique Astronauts per Country'
     )
     fig.update_layout(
@@ -174,15 +161,14 @@ def plot_choropleth(df):
     )
     return fig
 
-# --------------- Layout ---------------
+# --------------- Main Layout ---------------
 st.title("🚀 Astronaut Dashboard")
 col1, col2 = st.columns(2)
 
 with col1:
     st.plotly_chart(plot_cumulative(df_filt), use_container_width=True)
-    fig_pie = plot_gender_pie(df_filt)
-    if fig_pie:
-        st.plotly_chart(fig_pie, use_container_width=True)
+    pie_fig = plot_gender_pie(df_filt)
+    st.plotly_chart(pie_fig, use_container_width=True)
 
 with col2:
     st.plotly_chart(plot_top_nats(df_filt), use_container_width=True)
