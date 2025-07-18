@@ -1,6 +1,5 @@
 # app.py
 
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -43,7 +42,7 @@ st.sidebar.header("🔎 Filters")
 years = sorted(astro['year'].unique())
 selected_years = st.sidebar.slider(
     "Year range", min_value=years[0], max_value=years[-1],
-    value=(1961, 2019)
+    value=(years[0], years[-1])
 )
 
 genders = astro['profile_gender'].unique().tolist()
@@ -87,7 +86,7 @@ def plot_cumulative(df):
     )
     fig.update_layout(
         xaxis=dict(
-            range=[1961,2019],
+            range=[min(years),max(years)],
             tickmode='linear',
             tick0=1965,
             dtick=5,
@@ -130,12 +129,17 @@ def plot_gender_pie(df):
     unique_ = df.drop_duplicates(subset='profile_name')
     gc = (
         unique_['profile_gender']
-               .value_counts()
+               .value_counts(dropna=False)
                .reset_index(name='count')
                .rename(columns={'index':'gender'})
     )
+    # Debug: inspect data
+    st.write("👀 pie data:", gc)
+    if gc.empty:
+        st.warning("No gender data to display.")
+        return None
     fig = px.pie(
-        gc,
+        data_frame=gc,
         names='gender',
         values='count',
         hole=0.3,
@@ -176,9 +180,10 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.plotly_chart(plot_cumulative(df_filt), use_container_width=True)
-    st.plotly_chart(plot_gender_pie(df_filt), use_container_width=True)
+    fig_pie = plot_gender_pie(df_filt)
+    if fig_pie:
+        st.plotly_chart(fig_pie, use_container_width=True)
 
 with col2:
     st.plotly_chart(plot_top_nats(df_filt), use_container_width=True)
     st.plotly_chart(plot_choropleth(df_filt), use_container_width=True)
-
