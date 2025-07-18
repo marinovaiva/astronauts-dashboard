@@ -3,6 +3,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 
 # Configure the Streamlit page
 st.set_page_config(page_title="Astronaut Dashboard", layout="wide")
@@ -124,18 +125,28 @@ def plot_gender_pie(df):
         .reset_index(name='count')
         .rename(columns={'index': 'gender'})
     )
-    if gc.empty:
-        return px.Figure()
-    fig = px.pie(
-        data_frame=gc,
-        names='gender',
-        values='count',
-        hole=0.3,
-        title="Unique Astronauts by Gender"
-    )
-    fig.update_traces(textposition='inside', textinfo='percent+label')
-    fig.update_layout(width=600, height=400)
-    return fig
+    # Debug output
+    st.write("👀pie data:", gc)
+    # Ensure types
+    gc['gender'] = gc['gender'].astype(str).fillna('Unknown')
+    gc['count'] = pd.to_numeric(gc['count'], errors='coerce').fillna(0).astype(int)
+    if gc['count'].sum() == 0:
+        st.warning("No gender data to display.")
+        return go.Figure()
+    try:
+        fig = px.pie(
+            data_frame=gc,
+            names='gender',
+            values='count',
+            hole=0.3,
+            title="Unique Astronauts by Gender"
+        )
+        fig.update_traces(textposition='inside', textinfo='percent+label')
+        fig.update_layout(width=600, height=400)
+        return fig
+    except Exception as e:
+        st.error(f"Error rendering pie chart: {e}")
+        return go.Figure()
 
 
 def plot_choropleth(df):
